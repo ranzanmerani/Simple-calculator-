@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simple Calculator</title>
+<style>
+  /* Simple Calculator — clean, commented CSS for a class assignment */
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    background: linear-gradient(135deg, #0d1526, #1e3a1f);
+    color: #fff;
+    padding: 20px;
+  }
+
+  h1 { margin: 0; font-size: 26px; }
+  .subtitle { color: #c6cede; margin: 0 0 10px; font-size: 14px; }
+
+  /* Calculator body */
+  .calculator {
+    background: #16233f;
+    border: 1px solid #2b3a5c;
+    border-radius: 24px;
+    padding: 20px;
+    width: 320px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, .45);
+  }
+
+  /* Display: shows the typed expression on top, result big below */
+  .display {
+    background: #0d1526;
+    border-radius: 14px;
+    padding: 16px;
+    text-align: right;
+    min-height: 86px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  #history { color: #8fa0bd; font-size: 15px; min-height: 22px; word-break: break-all; }
+  #result { font-size: 34px; font-weight: 700; word-break: break-all; }
+
+  /* Buttons grid: 4 columns */
+  .buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+  button {
+    border: none;
+    border-radius: 14px;
+    padding: 16px 0;
+    font-size: 19px;
+    cursor: pointer;
+    background: #24344f;
+    color: #fff;
+    transition: transform .1s ease, background .1s ease;
+  }
+  button:hover { background: #31456a; }
+  button:active { transform: scale(.95); }
+
+  /* Operator buttons in orange */
+  .operator { background: #f26522; font-weight: 700; }
+  .operator:hover { background: #d9551a; }
+
+  /* Utility buttons in green */
+  .utility { background: #1e7a34; }
+  .utility:hover { background: #166329; }
+
+  /* Equals button spans two columns */
+  .equals { grid-column: span 2; background: #f26522; font-weight: 700; }
+  .equals:hover { background: #d9551a; }
+
+  .hint { color: #8fa0bd; font-size: 13px; text-align: center; max-width: 320px; }
+</style>
+</head>
+<body>
+
+  <h1>🧮 Simple Calculator</h1>
+
+  <div class="calculator">
+    <!-- Display -->
+    <div class="display">
+      <div id="history"></div>
+      <div id="result">0</div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="buttons">
+      <button class="utility" onclick="clearAll()">C</button>
+      <button class="utility" onclick="backspace()">⌫</button>
+      <button class="utility" onclick="append('%')">%</button>
+      <button class="operator" onclick="append('/')">÷</button>
+
+      <button onclick="append('7')">7</button>
+      <button onclick="append('8')">8</button>
+      <button onclick="append('9')">9</button>
+      <button class="operator" onclick="append('*')">×</button>
+
+      <button onclick="append('4')">4</button>
+      <button onclick="append('5')">5</button>
+      <button onclick="append('6')">6</button>
+      <button class="operator" onclick="append('-')">−</button>
+
+      <button onclick="append('1')">1</button>
+      <button onclick="append('2')">2</button>
+      <button onclick="append('3')">3</button>
+      <button class="operator" onclick="append('+')">+</button>
+
+      <button onclick="append('0')">0</button>
+      <button onclick="append('.')">.</button>
+      <button class="equals" onclick="calculate()">=</button>
+    </div>
+  </div>
+
+  <p class="hint">Tip: your computer keyboard works too — type numbers, + − × ÷, press Enter for =, Backspace to delete.</p>
+
+<script>
+  // Simple Calculator — JavaScript
+  // Keeps the current expression as a string and evaluates it safely.
+
+  let expression = "";                       // what the user has typed
+  const historyEl = document.getElementById("history");
+  const resultEl = document.getElementById("result");
+
+  // Show the current expression (or 0 when empty)
+  function updateDisplay() {
+    resultEl.textContent = expression === "" ? "0" : expression;
+  }
+
+  // Add a digit, decimal point or operator to the expression
+  function append(value) {
+    const operators = ["+", "-", "*", "/", "%"];
+    const last = expression.slice(-1);
+
+    // Don't allow two operators in a row (except a minus at the start)
+    if (operators.includes(value) && operators.includes(last)) {
+      expression = expression.slice(0, -1); // replace the old operator
+    }
+    // Don't allow two decimal points in the same number
+    if (value === ".") {
+      const currentNumber = expression.split(/[\+\-\*\/%]/).pop();
+      if (currentNumber.includes(".")) return;
+    }
+    expression += value;
+    updateDisplay();
+  }
+
+  // Clear everything
+  function clearAll() {
+    expression = "";
+    historyEl.textContent = "";
+    updateDisplay();
+  }
+
+  // Delete the last character
+  function backspace() {
+    expression = expression.slice(0, -1);
+    updateDisplay();
+  }
+
+  // Evaluate the expression and show the answer
+  function calculate() {
+    if (expression === "") return;
+    try {
+      // Only allow digits, operators, decimal points and brackets
+      if (!/^[0-9+\-*/%.() ]+$/.test(expression)) throw new Error("Invalid input");
+
+      const answer = eval(expression);      // safe here: input is filtered above
+
+      if (answer === Infinity || Number.isNaN(answer)) {
+        resultEl.textContent = "Error";
+        expression = "";
+        return;
+      }
+      historyEl.textContent = expression + " =";
+      expression = String(Math.round(answer * 100000000) / 100000000); // tidy decimals
+      updateDisplay();
+    } catch {
+      resultEl.textContent = "Error";
+      expression = "";
+    }
+  }
+
+  // Keyboard support: numbers, operators, Enter (=), Backspace, Escape (clear)
+  document.addEventListener("keydown", (event) => {
+    if (/^[0-9+\-*/%.]$/.test(event.key)) append(event.key);
+    else if (event.key === "Enter") calculate();
+    else if (event.key === "Backspace") backspace();
+    else if (event.key === "Escape") clearAll();
+  });
+</script>
+</body>
+</html>
